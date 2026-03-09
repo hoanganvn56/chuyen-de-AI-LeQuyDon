@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Chiến Lược - Lê Quý Đôn</title>
+    <style>
+        :root { --primary: #1a73e8; --danger: #d93025; --success: #1e8e3e; --warning: #f9ab00; --bg: #0f172a; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
+        .header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* Dashboard đồng hồ */
+        .dashboard { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        .team-panel { background: #1e293b; border-radius: 20px; padding: 20px; width: 48%; border: 2px solid #334155; }
+        .team-title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 15px; color: var(--primary); }
+        
+        .gauge-container { display: flex; justify-content: space-around; }
+        .gauge { width: 150px; height: 80px; position: relative; overflow: hidden; text-align: center; }
+        .gauge-arc { width: 150px; height: 150px; border: 12px solid #334155; border-radius: 50%; border-bottom-color: transparent; border-left-color: transparent; transform: rotate(-45deg); position: absolute; top: 0; }
+        .gauge-fill { width: 150px; height: 150px; border: 12px solid var(--primary); border-radius: 50%; border-bottom-color: transparent; border-left-color: transparent; position: absolute; top: 0; transform: rotate(-45deg); transition: transform 0.8s; }
+        .gauge-needle { width: 3px; height: 60px; background: #fff; position: absolute; bottom: 5px; left: 73px; transform-origin: bottom center; transition: transform 0.8s; transform: rotate(-90deg); }
+        .gauge-label { position: absolute; bottom: 0; width: 100%; font-size: 12px; font-weight: bold; }
+
+        /* BIỂU ĐỒ CỘT SO SÁNH (MỚI) */
+        .comparison-chart { background: #1e293b; padding: 25px; border-radius: 20px; border: 2px solid var(--primary); margin-top: 30px; display: none; }
+        .bar-container { display: flex; align-items: flex-end; justify-content: space-around; height: 200px; margin-top: 20px; border-bottom: 2px solid #475569; }
+        .bar-group { text-align: center; width: 100px; }
+        .bar { width: 50px; margin: 0 auto; transition: height 1s ease-out; border-radius: 5px 5px 0 0; position: relative; }
+        .bar-label { margin-top: 10px; font-size: 14px; font-weight: bold; }
+        .bar-value { position: absolute; top: -25px; width: 100%; font-size: 12px; }
+
+        .market-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .item-card { background: #334155; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+        .item-card:hover { border-color: var(--warning); transform: scale(1.02); }
+        
+        .controls { display: flex; justify-content: center; gap: 20px; margin: 30px 0; }
+        .btn-action { padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 50px; border: none; cursor: pointer; }
+        .ai-feedback { background: #0f172a; border-left: 5px solid var(--warning); padding: 15px; margin-top: 20px; display: none; border-radius: 8px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚀 CHUYÊN ĐỀ: TÍCH HỢP AI TRONG DẠY HỌC DỰ ÁN</h1>
+        <p>Phân tích dữ liệu & Ra quyết định có cơ sở - Trường Lê Quý Đôn Quyết Thắng</p>
+    </div>
+
+    <div class="dashboard">
+        <div class="team-panel">
+            <div class="team-title">ĐỘI A: BMI 17 (GẦY) - 150k</div>
+            <div class="gauge-container">
+                <div class="gauge">
+                    <div class="gauge-arc"></div>
+                    <div class="gauge-fill" id="fill-budget-A"></div>
+                    <div class="gauge-needle" id="needle-budget-A"></div>
+                    <div class="gauge-label">NGÂN SÁCH</div>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-arc"></div>
+                    <div class="gauge-fill" style="border-color: var(--success)" id="fill-health-A"></div>
+                    <div class="gauge-needle" id="needle-health-A"></div>
+                    <div class="gauge-label">DINH DƯỠNG</div>
+                </div>
+            </div>
+            <div class="ai-feedback" id="feedback-A"></div>
+        </div>
+
+        <div class="team-panel">
+            <div class="team-title">ĐỘI B: BMI 28 (BÉO) - 150k</div>
+            <div class="gauge-container">
+                <div class="gauge">
+                    <div class="gauge-arc"></div>
+                    <div class="gauge-fill" id="fill-budget-B"></div>
+                    <div class="gauge-needle" id="needle-budget-B"></div>
+                    <div class="gauge-label">NGÂN SÁCH</div>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-arc"></div>
+                    <div class="gauge-fill" style="border-color: var(--success)" id="fill-health-B"></div>
+                    <div class="gauge-needle" id="needle-health-B"></div>
+                    <div class="gauge-label">DINH DƯỠNG</div>
+                </div>
+            </div>
+            <div class="ai-feedback" id="feedback-B"></div>
+        </div>
+    </div>
+
+    <div id="comparison" class="comparison-chart">
+        <h2 style="text-align: center;">📊 BIỂU ĐỒ SO SÁNH HIỆU QUẢ RA QUYẾT ĐỊNH</h2>
+        <div class="bar-container">
+            <div class="bar-group">
+                <div class="bar" id="bar-budget-A" style="background: var(--primary); height: 0px;"><span class="bar-value" id="val-b-A">0</span></div>
+                <div class="bar-label">Ngân sách A</div>
+            </div>
+            <div class="bar-group">
+                <div class="bar" id="bar-health-A" style="background: var(--success); height: 0px;"><span class="bar-value" id="val-h-A">0</span></div>
+                <div class="bar-label">Dinh dưỡng A</div>
+            </div>
+            <div class="bar-group">
+                <div class="bar" id="bar-budget-B" style="background: var(--primary); height: 0px;"><span class="bar-value" id="val-b-B">0</span></div>
+                <div class="bar-label">Ngân sách B</div>
+            </div>
+            <div class="bar-group">
+                <div class="bar" id="bar-health-B" style="background: var(--success); height: 0px;"><span class="bar-value" id="val-h-B">0</span></div>
+                <div class="bar-label">Dinh dưỡng B</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-action" style="background: var(--warning);" onclick="activateAI()">🤖 KÍCH HOẠT AI PHẢN BIỆN</button>
+        <button class="btn-action" style="background: #475569; color: white;" onclick="location.reload()">🔄 LÀM MỚI</button>
+    </div>
+
+    <div class="market-grid" id="market-items"></div>
+
+    <script>
+        const items = [
+            { id: 1, name: "Ức gà phi lê", price: 45000, health: 30 },
+            { id: 2, name: "Trà sữa", price: 35000, health: -40 },
+            { id: 3, name: "Salad", price: 25000, health: 25 },
+            { id: 4, name: "Mì ly", price: 10000, health: -20 },
+            { id: 5, name: "Sữa ít đường", price: 15000, health: 20 },
+            { id: 6, name: "Xúc xích", price: 20000, health: -25 }
+        ];
+
+        let state = { A: { budget: 0, health: 0 }, B: { budget: 0, health: 0 } };
+
+        function renderMarket() {
+            const grid = document.getElementById('market-items');
+            grid.innerHTML = items.map(i => `
+                <div class="item-card">
+                    <b>${i.name}</b><br><span style="color:var(--warning)">${i.price.toLocaleString()}đ</span><br>
+                    <button onclick="pick('A', ${i.id})" style="background:var(--primary);color:white;border:none;padding:5px;cursor:pointer;margin-top:5px">Đội A</button>
+                    <button onclick="pick('B', ${i.id})" style="background:var(--success);color:white;border:none;padding:5px;cursor:pointer;">Đội B</button>
+                </div>
+            `).join('');
+        }
+
+        function pick(team, id) {
+            const item = items.find(x => x.id === id);
+            state[team].budget += item.price;
+            state[team].health += item.health;
+            updateGauges(team);
+        }
+
+        function updateGauges(team) {
+            const bAngle = Math.min((state[team].budget / 150000) * 180 - 90, 90);
+            const hAngle = Math.min((Math.max(state[team].health + 50, 0) / 100) * 180 - 90, 90);
+            document.getElementById(`needle-budget-${team}`).style.transform = `rotate(${bAngle}deg)`;
+            document.getElementById(`needle-health-${team}`).style.transform = `rotate(${hAngle}deg)`;
+            document.getElementById(`fill-budget-${team}`).style.transform = `rotate(${bAngle + 45}deg)`;
+            if(state[team].budget > 150000) document.getElementById(`fill-budget-${team}`).style.borderColor = 'var(--danger)';
+        }
+
+        function activateAI() {
+            document.getElementById('comparison').style.display = 'block';
+            ['A', 'B'].forEach(team => {
+                document.getElementById(`feedback-${team}`).style.display = 'block';
+                document.getElementById(`feedback-${team}`).innerHTML = `<b>🤖 AI:</b> ${state[team].budget > 150000 ? "Lãng phí ngân sách!" : "Tài chính tốt."} ${state[team].health < 0 ? "Hại sức khỏe!" : "Dinh dưỡng ổn."}`;
+                
+                // Cập nhật biểu đồ cột
+                const bHeight = (state[team].budget / 200000) * 200;
+                const hHeight = Math.max((state[team].health + 50) / 100 * 200, 10);
+                
+                document.getElementById(`bar-budget-${team}`).style.height = `${bHeight}px`;
+                document.getElementById(`bar-health-${team}`).style.height = `${hHeight}px`;
+                document.getElementById(`val-b-${team}`).innerText = state[team].budget.toLocaleString();
+                document.getElementById(`val-h-${team}`).innerText = state[team].health;
+            });
+        }
+        renderMarket();
+    </script>
+</body>
+</html>
