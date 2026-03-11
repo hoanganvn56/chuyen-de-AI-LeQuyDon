@@ -125,7 +125,7 @@
         // 3. HÀM GỌI AI QUA FETCH (SỬA LỖI 404)
         async function analyzePlayer(name, team, b, h) {
             const API_KEY = "AIzaSyB3SisVd_PTBxHPZukQQWhfitgPCJzap8Y"; // Key của thầy
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('ai-modal').style.display = 'block';
@@ -168,3 +168,4 @@
     </script>
 </body>
 </html>
+
