@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hành Trình Số - Lê Quý Đôn</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #1a73e8; --success: #34a853; --warning: #f9ab00; --danger: #d93025; --text: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .screen { display: none; min-height: 100vh; padding: 25px; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .active { display: flex; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        input { width: 100%; max-width: 300px; padding: 15px; border-radius: 12px; border: 2px solid #334155; background: var(--card); color: white; margin-top: 15px; outline: none; }
+        .btn-team { width: 100%; max-width: 300px; padding: 18px; margin: 8px 0; border-radius: 15px; font-weight: bold; border: none; color: white; cursor: pointer; }
+        .header-game { background: var(--card); width: 100%; padding: 15px; position: sticky; top: 0; border-bottom: 3px solid var(--primary); z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
+        .item-card { background: var(--card); padding: 12px; border-radius: 15px; border: 1px solid #334155; text-align: center; }
+        .btn-buy { background: var(--primary); color: white; border: none; width: 100%; padding: 8px; border-radius: 8px; font-weight: bold; margin-top: 5px; }
+        .btn-checkout { background: var(--success); color: white; width: 90%; padding: 18px; border-radius: 15px; font-weight: bold; margin: 20px 0; border: none; }
+        .receipt { background: white; color: black; padding: 25px; border-radius: 5px; width: 100%; max-width: 280px; text-align: left; font-family: 'Courier New', monospace; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+    <div id="step-1" class="screen active">
+        <h2>XIN CHÀO!</h2>
+        <input type="text" id="player-name" placeholder="Họ và Tên...">
+        <button class="btn-team" style="background:var(--warning); color:#000; margin-top:20px;" onclick="goToStep(2)">TIẾP TỤC →</button>
+    </div>
+
+    <div id="step-2" class="screen">
+        <h2>NHÓM ĐỐI TƯỢNG?</h2>
+        <button class="btn-team" style="background:var(--primary)" onclick="pickTeam('A', 'NHÓM GẦY')">🏃‍♂️ NHÓM GẦY</button>
+        <button class="btn-team" style="background:var(--success)" onclick="pickTeam('B', 'NHÓM BÉO')">🚶‍♂️ NHÓM BÉO</button>
+        <button class="btn-team" style="background:var(--warning); color:#000" onclick="pickTeam('C', 'BÌNH THƯỜNG')">🧘‍♂️ BÌNH THƯỜNG</button>
+    </div>
+
+    <div id="step-3" class="screen">
+        <h2>🛒 NHIỆM VỤ</h2>
+        <p>Chào <b><span id="n-lab"></span></b>! Bạn có 150.000đ.</p>
+        <button class="btn-team" style="background:var(--primary)" onclick="goToStep(4)">VÀO SIÊU THỊ</button>
+    </div>
+
+    <div id="step-4" class="screen" style="padding:0; justify-content: flex-start;">
+        <div class="header-game">
+            <div style="display:flex; justify-content: space-between;"><span id="p-name-d"></span> <span id="local-h">🥗 0</span></div>
+            <div id="local-b" style="font-size: 1.5em; font-weight:bold; color:var(--warning)">💰 0đ</div>
+        </div>
+        <div class="market-grid" id="market-list"></div>
+        <button class="btn-checkout" onclick="goToStep(5)">✅ XUẤT HÓA ĐƠN</button>
+    </div>
+
+    <div id="step-5" class="screen">
+        <div class="receipt">
+            <center><b>LÊ QUÝ ĐÔN - BIÊN HÒA</b><br>HÓA ĐƠN DỮ LIỆU</center>
+            <hr style="border: 1px dashed #ccc">
+            KH: <b id="f-name"></b><br>
+            NHÓM: <b id="f-team"></b><br>
+            TỔNG CHI: <b id="f-budget">0đ</b><br>
+            SỨC KHỎE: <b id="f-health">0</b><br>
+            <hr style="border: 1px dashed #ccc">
+            <center><small>Dữ liệu đã gửi đến máy chủ.<br>Mời theo dõi AI phản biện!</small></center>
+        </div>
+        <button class="btn-team" style="background:#475569; margin-top:20px;" onclick="location.reload()">CHƠI LẠI</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDj_9zzB1yYoiR7D4So5P-y-YbPVDdrgNk",
+            authDomain: "lequydon-ai.firebaseapp.com",
+            databaseURL: "https://lequydon-ai-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "lequydon-ai",
+            storageBucket: "lequydon-ai.firebasestorage.app",
+            messagingSenderId: "613376871526",
+            appId: "1:613376871526:web:d61a4978c7284f7f1df1a7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let pName = "", pTeam = "", curB = 0, curH = 0;
+
+        const foods = [
+            {e:"🍗", n:"Ức gà", p:45000, h:35}, {e:"🧋", n:"Trà sữa", p:35000, h:-45},
+            {e:"🥗", n:"Salad", p:25000, h:30}, {e:"🍜", n:"Mì ly", p:10000, h:-25},
+            {e:"🍎", n:"Táo", p:12000, h:15}, {e:"🍔", n:"Burger", p:55000, h:-40},
+            {e:"🥛", n:"Sữa", p:15000, h:20}, {e:"🌭", n:"Xúc xích", p:20000, h:-30}
+        ];
+
+        function goToStep(s) {
+            if(s === 2) {
+                pName = document.getElementById('player-name').value.trim();
+                if(!pName) return alert("Thầy cô nhập tên nhé!");
+                document.getElementById('n-lab').innerText = pName;
+                document.getElementById('p-name-d').innerText = pName;
+                document.getElementById('f-name').innerText = pName;
+            }
+            if(s === 4) {
+                const list = document.getElementById('market-list');
+                list.innerHTML = "";
+                foods.forEach(f => {
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.innerHTML = `<span>${f.e}</span><br><small>${f.n}</small><button class="btn-buy" onclick="buy(${f.p}, ${f.h})">CHỌN</button>`;
+                    list.appendChild(card);
+                });
+            }
+            if(s === 5) {
+                document.getElementById('f-budget').innerText = curB.toLocaleString() + "đ";
+                document.getElementById('f-health').innerText = curH;
+                db.ref('players/' + pName).update({ status: "Đã thanh toán ✅" });
+            }
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-' + s).classList.add('active');
+        }
+
+        function pickTeam(code, name) {
+            pTeam = code;
+            document.getElementById('f-team').innerText = name;
+
+            // SỬA LỖI TẠI ĐÂY: Mỗi lần chọn đội, ép dữ liệu cá nhân về 0
+            db.ref('players/' + pName).set({ 
+                name: pName, 
+                team: name, 
+                status: "Đang mua sắm 🛒",
+                b: 0, 
+                h: 0 
+            });
+
+            goToStep(3);
+            
+            // Lắng nghe dữ liệu CỦA CÁ NHÂN để hiện lên điện thoại
+            db.ref('players/' + pName).on('value', snap => {
+                const d = snap.val() || {b:0, h:0};
+                curB = d.b || 0; 
+                curH = d.h || 0;
+                document.getElementById('local-b').innerText = "💰 " + curB.toLocaleString() + "đ";
+                document.getElementById('local-h').innerText = "🥗 " + curH;
+                if(curB > 150000) document.getElementById('local-b').style.color = "var(--danger)";
+                else document.getElementById('local-b').style.color = "var(--warning)";
+            });
+        }
+
+        function buy(p, h) {
+            // 1. Cộng dồn vào Nhóm (Để Dashboard hiện 3 ô lớn)
+            db.ref('game/' + pTeam).transaction(c => {
+                c = c || {b:0, h:0};
+                return {b: (c.b || 0) + p, h: (c.h || 0) + h};
+            });
+
+            // 2. Cộng dồn vào Cá nhân (Để hiện ở bảng 50 người)
+            db.ref('players/' + pName).transaction(pData => {
+                if (pData) {
+                    pData.b = (pData.b || 0) + p;
+                    pData.h = (pData.h || 0) + h;
+                }
+                return pData;
+            });
+
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
+    </script>
+</body>
+</html>
