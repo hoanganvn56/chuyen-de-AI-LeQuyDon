@@ -8,37 +8,43 @@
     
     <style>
         :root { --bg: #020617; --card: #1e293b; --primary: #3b82f6; --success: #22c55e; --warning: #eab308; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; padding-bottom: 100px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; padding-bottom: 120px; }
         
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+
         /* 3 Thẻ Tổng Kết Nhóm */
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px; }
         .team-card { background: var(--card); border-radius: 20px; padding: 20px; border: 3px solid #334155; text-align: center; transition: 0.3s; }
         .team-card.over { border-color: var(--danger); box-shadow: 0 0 20px var(--danger); }
-        .team-val { font-size: 3em; font-weight: bold; color: var(--warning); margin: 10px 0; }
+        .team-val { font-size: 3.5em; font-weight: bold; color: var(--warning); margin: 10px 0; }
         
         /* Danh sách người chơi có khung cuộn */
-        .player-list-container { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #334155; max-height: 450px; overflow-y: auto; margin-bottom: 20px; }
+        .player-list-container { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #334155; max-height: 400px; overflow-y: auto; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; }
         
-        .btn-small-ai { background: #8b5cf6; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
+        .btn-small-ai { background: #8b5cf6; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85em; font-weight: bold; transition: 0.2s; }
         .btn-small-ai:hover { background: #7c3aed; transform: scale(1.05); }
 
-        /* Modal AI */
-        #ai-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: black; padding: 30px; border-radius: 20px; z-index: 2000; box-shadow: 0 0 50px rgba(0,0,0,0.8); width: 400px; text-align: center; border: 5px solid var(--primary); }
+        /* Modal AI Phản Biện */
+        #ai-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: black; padding: 30px; border-radius: 25px; z-index: 2000; box-shadow: 0 0 60px rgba(0,0,0,0.9); width: 450px; text-align: center; border: 6px solid var(--primary); }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1999; }
 
-        .footer-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; padding: 15px; text-align: center; display: flex; justify-content: center; gap: 20px; border-top: 2px solid var(--primary); z-index: 1000; }
-        .btn { padding: 12px 25px; border-radius: 50px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+        /* Thanh điều khiển cố định phía dưới */
+        .footer-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; padding: 20px; text-align: center; display: flex; justify-content: center; gap: 30px; border-top: 2px solid var(--primary); z-index: 1000; }
+        .btn { padding: 15px 35px; border-radius: 50px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; font-size: 1.1em; }
 
-        /* Loading effect */
-        .loading-dots:after { content: ' .'; animation: dots 1s steps(5, end) infinite; }
-        @keyframes dots { 0%, 20% { color: rgba(0,0,0,0); } 40% { color: #334155; } 60% { text-shadow: .25em 0 0 #334155; } 80%, 100% { text-shadow: .25em 0 0 #334155, .5em 0 0 #334155; } }
+        /* Hiệu ứng Loading Dots */
+        .loading-dots:after { content: ' .'; animation: dots 1.2s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); } 40% { color: #334155; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); } 60% { text-shadow: .25em 0 0 #334155, .5em 0 0 rgba(0,0,0,0); } 80%, 100% { text-shadow: .25em 0 0 #334155, .5em 0 0 #334155; } }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align: center; letter-spacing: 2px;">HỘI TRƯỜNG LÊ QUÝ ĐÔN QUYẾT THẮNG | 2026</h2>
+    <div class="header">
+        <h2 style="letter-spacing: 3px; margin: 0;">HỘI TRƯỜNG LÊ QUÝ ĐÔN QUYẾT THẮNG | 2026</h2>
+        <p style="color: #94a3b8; margin-top: 5px;">Hệ thống Quản trị Dữ liệu & Phản biện AI Real-time</p>
+    </div>
 
     <div class="summary-grid">
         <div class="team-card" id="card-A"><h3 style="color:var(--primary)">NHÓM GẦY</h3><div class="team-val" id="b-A">0đ</div><div id="h-A">🥗 Sức khỏe: 0</div></div>
@@ -47,7 +53,7 @@
     </div>
 
     <div class="player-list-container">
-        <h3 style="margin-top:0">👥 DANH SÁCH GIÁO VIÊN THAM GIA (<span id="p-count">0</span>)</h3>
+        <h3 style="margin-top:0; color: var(--primary);">👥 DANH SÁCH GIÁO VIÊN THAM GIA (<span id="p-count">0</span>)</h3>
         <table>
             <thead>
                 <tr>
@@ -58,19 +64,21 @@
                     <th>Hành động</th>
                 </tr>
             </thead>
-            <tbody id="player-list"></tbody>
+            <tbody id="player-list">
+                </tbody>
         </table>
     </div>
 
     <div id="ai-modal">
         <h2 id="ai-title" style="color:var(--primary); margin-top:0;">🤖 AI PHẢN BIỆN</h2>
-        <p id="ai-result" style="font-size: 1.1em; line-height: 1.6; color: #334155; min-height: 60px;"></p>
-        <button onclick="closeModal()" class="btn" style="background:var(--primary); color:white; margin-top:15px;">ĐÓNG</button>
+        <div id="ai-result" style="font-size: 1.2em; line-height: 1.6; color: #1e293b; min-height: 80px; text-align: left; padding: 10px;"></div>
+        <button onclick="closeModal()" class="btn" style="background:var(--primary); color:white; margin-top:20px; width: 100%;">ĐÓNG CỬA SỔ</button>
     </div>
     <div class="overlay" id="overlay" onclick="closeModal()"></div>
 
     <div class="footer-controls">
-        <button class="btn" style="background:#475569; color:white;" onclick="resetData()">🔄 LÀM MỚI TOÀN BỘ</button>
+        <button class="btn" style="background:var(--warning); color: black;" onclick="alert('Nhấn nút AI của từng thầy cô để xem phân tích giỏ hàng!')">💡 HƯỚNG DẪN</button>
+        <button class="btn" style="background:#475569; color:white;" onclick="resetData()">🔄 LÀM MỚI TOÀN BỘ DỮ LIỆU</button>
     </div>
 
     <script>
@@ -87,52 +95,58 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. Cập nhật 3 ô tổng nhóm
+        // 1. Cập nhật dữ liệu 3 nhóm lớn theo thời gian thực
         db.ref('game').on('value', snap => {
             const data = snap.val() || {A:{b:0,h:0}, B:{b:0,h:0}, C:{b:0,h:0}};
             ['A', 'B', 'C'].forEach(t => {
                 const b = data[t]?.b || 0;
+                const h = data[t]?.h || 0;
                 document.getElementById('b-'+t).innerText = b.toLocaleString() + 'đ';
-                document.getElementById('h-'+t).innerText = "🥗 Sức khỏe: " + (data[t]?.h || 0);
+                document.getElementById('h-'+t).innerText = "🥗 Sức khỏe: " + h;
                 if(b > 150000) document.getElementById('card-'+t).classList.add('over');
                 else document.getElementById('card-'+t).classList.remove('over');
             });
         });
 
-        // 2. Đổ dữ liệu giáo viên vào bảng
+        // 2. Cập nhật danh sách từng giáo viên
         db.ref('players').on('value', snap => {
             const list = document.getElementById('player-list');
             list.innerHTML = "";
             const players = snap.val();
             if(!players) { document.getElementById('p-count').innerText = "0"; return; }
+            
             const entries = Object.entries(players);
             document.getElementById('p-count').innerText = entries.length;
 
             entries.forEach(([id, p]) => {
-                const b = p.b || 0;
-                const h = p.h || 0;
+                const budget = p.b || 0;
+                const health = p.h || 0;
                 const row = `<tr>
                     <td><b>${p.name}</b></td>
                     <td>${p.team}</td>
-                    <td style="color: var(--warning); font-weight:bold;">${b.toLocaleString()}đ</td>
-                    <td>🥗 ${h}</td>
-                    <td><button class="btn-small-ai" onclick="analyzePlayer('${p.name}', '${p.team}', ${b}, ${h})">🤖 AI PHẢN BIỆN</button></td>
+                    <td style="color: var(--warning); font-weight:bold;">${budget.toLocaleString()}đ</td>
+                    <td>🥗 ${health}</td>
+                    <td>
+                        <button class="btn-small-ai" onclick="analyzePlayer('${p.name}', '${p.team}', ${budget}, ${health})">
+                            🤖 AI PHẢN BIỆN
+                        </button>
+                    </td>
                 </tr>`;
                 list.insertAdjacentHTML('beforeend', row);
             });
         });
 
-        // 3. HÀM GỌI AI QUA FETCH (SỬA LỖI 404)
+        // 3. HÀM GỌI GEMINI AI QUA FETCH (SỬA LỖI 404 - DÙNG V1BETA)
         async function analyzePlayer(name, team, b, h) {
-            const API_KEY = "AIzaSyB3SisVd_PTBxHPZukQQWhfitgPCJzap8Y"; // Key của thầy
+            const API_KEY = "AIzaSyB3SisVd_PTBxHPZukQQWhfitgPCJzap8Y";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('ai-modal').style.display = 'block';
-            document.getElementById('ai-title').innerText = "AI đang soi giỏ hàng...";
-            document.getElementById('ai-result').innerHTML = `<span class="loading-dots">Đang phân tích lựa chọn của thầy/cô ${name}</span>`;
+            document.getElementById('ai-title').innerText = "AI đang phân tích...";
+            document.getElementById('ai-result').innerHTML = `<div class="loading-dots" style="text-align:center;">Đang soi giỏ hàng của thầy/cô ${name}</div>`;
 
-            const promptText = `Bạn là chuyên gia dinh dưỡng dí dỏm tại trường Lê Quý Đôn. Hãy nhận xét về giáo viên tên là ${name}, thuộc nhóm thể trạng ${team}. Họ đã tiêu ${b.toLocaleString()}đ (ngân sách tối đa 150.000đ) và đạt điểm sức khỏe là ${h}. Hãy viết 1 câu nhận xét cực ngắn, thông minh, khen hoặc chê dí dỏm dựa trên số liệu.`;
+            const promptText = `Bạn là một chuyên gia dinh dưỡng dí dỏm và thông minh tại trường Lê Quý Đôn. Hãy nhận xét về giáo viên tên là ${name}, thuộc nhóm thể trạng ${team}. Họ đã tiêu ${b.toLocaleString()}đ (ngân sách tối đa 150.000đ) và đạt điểm sức khỏe là ${h} thông qua việc chọn 20 thực phẩm ảo. Hãy viết 1 câu nhận xét duy nhất, cực kỳ sắc sảo, ngắn gọn, có khen hoặc chê dí dỏm dựa trên số liệu thực tế này.`;
 
             try {
                 const response = await fetch(url, {
@@ -142,30 +156,4 @@
                 });
 
                 const data = await response.json();
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
-                    document.getElementById('ai-title').innerText = "AI Phản biện: " + name;
-                    document.getElementById('ai-result').innerText = data.candidates[0].content.parts[0].text;
-                } else {
-                    document.getElementById('ai-result').innerText = "⚠️ Google phản hồi: " + (data.error ? data.error.message : "Dữ liệu không xác định");
-                }
-            } catch (error) {
-                document.getElementById('ai-result').innerText = "⚠️ Lỗi kết nối. Thầy kiểm tra lại mạng hoặc API Key nhé!";
-            }
-        }
-
-        window.analyzePlayer = analyzePlayer;
-
-        window.closeModal = () => {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('ai-modal').style.display = 'none';
-        };
-
-        window.resetData = () => {
-            if(confirm("Xóa sạch dữ liệu chơi lại từ đầu?")) {
-                db.ref('/').set({ game: {A:{b:0,h:0}, B:{b:0,h:0}, C:{b:0,h:0}}, players: {} });
-            }
-        };
-    </script>
-</body>
-</html>
-
+                if (data.candidates && data.candidates[0].content.
