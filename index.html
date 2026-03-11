@@ -110,7 +110,7 @@
     
     // Thử dùng bản v1 (ổn định) và model có hậu tố -latest hoặc phiên bản mới của 2026
     // Nếu vẫn lỗi, thầy hãy thử đổi "gemini-1.5-flash" thành "gemini-2.0-flash" hoặc "gemini-3-flash"
-    const modelName = "gemini-1.5-flash-latest"; 
+    const modelName = "gemini-2.5-flash-latest"; 
     const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
     
     document.getElementById('overlay').style.display = 'block';
@@ -155,5 +155,6 @@
     </script>
 </body>
 </html>
+
 
 
