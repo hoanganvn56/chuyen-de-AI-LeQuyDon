@@ -106,36 +106,41 @@
 
         // --- HÀM GỌI AI QUA FETCH (SỬA LỖI 404 - DÙNG V1BETA) ---
         async function analyzePlayer(name, team, b, h) {
-            const API_KEY = "AIzaSyB3SisVd_PTBxHPZukQQWhfitgPCJzap8Y";
-            // CHUYỂN SANG v1beta LÀ GIẢI PHÁP CHỐNG LỖI 404
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-            
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById('ai-modal').style.display = 'block';
-            document.getElementById('ai-title').innerText = "AI đang phân tích...";
-            document.getElementById('ai-result').innerHTML = `<div class="loading-dots" style="text-align:center;">Đang soi giỏ hàng của thầy/cô ${name}</div>`;
+    const API_KEY = "AIzaSyB3SisVd_PTBxHPZukQQWhfitgPCJzap8Y";
+    
+    // Thử dùng bản v1 (ổn định) và model có hậu tố -latest hoặc phiên bản mới của 2026
+    // Nếu vẫn lỗi, thầy hãy thử đổi "gemini-1.5-flash" thành "gemini-2.0-flash" hoặc "gemini-3-flash"
+    const modelName = "gemini-1.5-flash-latest"; 
+    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
+    
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('ai-modal').style.display = 'block';
+    document.getElementById('ai-title').innerText = "AI đang phản biện...";
+    document.getElementById('ai-result').innerHTML = `<div class="loading-dots">Đang phân tích giỏ hàng của ${name}</div>`;
 
-            const promptText = `Bạn là một chuyên gia dinh dưỡng dí dỏm tại trường Lê Quý Đôn. Hãy nhận xét giáo viên ${name}, nhóm ${team}. Họ tiêu ${b.toLocaleString()}đ (ngân sách 150k) và có điểm sức khỏe là ${h}. Viết 1 câu nhận xét duy nhất, cực kỳ sắc sảo và dí dỏm.`;
+    const promptText = `Bạn là chuyên gia dinh dưỡng dí dỏm. Nhận xét giáo viên ${name}, nhóm ${team}. Tiêu ${b.toLocaleString()}đ, Sức khỏe ${h}. Viết 1 câu nhận xét ngắn, sắc sảo.`;
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
-                });
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+        });
 
-                const data = await response.json();
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
-                    document.getElementById('ai-title').innerText = "AI Phản biện: " + name;
-                    document.getElementById('ai-result').innerText = data.candidates[0].content.parts[0].text;
-                } else {
-                    document.getElementById('ai-result').innerText = "⚠️ Lỗi: " + (data.error ? data.error.message : "Mô hình không phản hồi.");
-                }
-            } catch (error) {
-                document.getElementById('ai-result').innerText = "⚠️ Lỗi kết nối mạng!";
-            }
+        const data = await response.json();
+        
+        if (data.error) {
+            // Nếu Google trả về lỗi, nó sẽ hiện rõ lý do tại đây
+            document.getElementById('ai-result').innerText = "⚠️ Lỗi AI Studio: " + data.error.message;
+            console.error("Chi tiết lỗi:", data.error);
+        } else if (data.candidates) {
+            document.getElementById('ai-title').innerText = "AI Phản biện: " + name;
+            document.getElementById('ai-result').innerText = data.candidates[0].content.parts[0].text;
         }
-
+    } catch (error) {
+        document.getElementById('ai-result').innerText = "⚠️ Lỗi kết nối hệ thống!";
+    }
+}
         window.closeModal = () => {
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('ai-modal').style.display = 'none';
@@ -150,3 +155,4 @@
     </script>
 </body>
 </html>
+
