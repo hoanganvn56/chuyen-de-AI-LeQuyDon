@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chợ Số Lê Quý Đôn - Quyết Thắng</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --bg: #f4f4f4; --card: #ffffff; --primary: #f53d2d; --lazada: #000083; --text: #222; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        
+        .screen { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; }
+        .active { display: flex; animation: fadeIn 0.2s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Fix lỗi nút quá cao ở bước 2 */
+        .btn-team-select { width: 100%; max-width: 300px; padding: 20px; margin: 10px 0; border-radius: 12px; font-weight: bold; border: none; color: white; cursor: pointer; font-size: 1.1em; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        .header-game { background: white; width: 100%; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-bottom: 2px solid var(--primary); box-sizing: border-box; }
+        .budget-bar { font-size: 1.2em; font-weight: bold; color: var(--primary); display: flex; justify-content: space-between; }
+
+        /* Grid món ăn sạch sẽ để chèn hình thật */
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; width: 100%; box-sizing: border-box; }
+        .item-card { background: white; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .item-img { width: 100%; aspect-ratio: 1/1; background: #f8f8f8; display: flex; align-items: center; justify-content: center; font-size: 3em; }
+        .item-info { padding: 10px; flex-grow: 1; text-align: left; }
+        .item-name { font-size: 0.9em; color: #333; font-weight: 500; height: 1.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 0px; }
+        .item-price { color: var(--primary); font-size: 1.1em; font-weight: bold; }
+        
+        /* Footer Controls */
+        .control-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px; display: flex; gap: 10px; border-top: 1px solid #ddd; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .btn-footer { flex: 1; padding: 15px; border-radius: 8px; font-weight: bold; border: none; font-size: 1em; cursor: pointer; }
+        .btn-reset { background: #eee; color: #666; }
+        .btn-submit { background: var(--primary); color: white; }
+
+        .over-budget { background: #ffebee !important; color: var(--primary) !important; }
+        .receipt { background: white; padding: 25px; border-radius: 4px; border: 1px solid #ddd; width: 90%; text-align: left; }
+		.item-img {
+		width: 100%;
+		aspect-ratio: 1/1; /* Ép ảnh luôn thành hình vuông */
+		object-fit: cover; /* Tự động cắt ảnh cho vừa khung mà không bị méo */
+		display: block;}
+    </style>
+</head>
+<body>
+
+    <div id="step-1" class="screen active">
+        <h2 style="color:var(--lazada); margin-bottom: 5px;">XIN CHÀO!</h2>
+        <p style="color: #666; margin-bottom: 20px;">Chào mừng thầy cô đến với Chợ Số</p>
+        <input type="text" id="player-name" placeholder="Họ và Tên giáo viên..." style="padding:15px; width:100%; max-width: 300px; border:1px solid #ccc; border-radius:8px; box-sizing: border-box;">
+        <button onclick="goToStep(2)" style="margin-top:25px; background:var(--lazada); color:white; padding:15px 50px; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">BẮT ĐẦU</button>
+    </div>
+
+    <div id="step-2" class="screen">
+        <h3 style="margin-bottom:25px; padding: 0 10px;">CHỌN THỂ TRẠNG ĐỂ CÓ CHẾ ĐỘ ƯU ĐÃI:</h3>
+        <button class="btn-team-select" style="background:#3b82f6;" onclick="pickTeam('A', 'NHÓM GẦY')">🏃‍♂️ NHÓM GẦY</button>
+        <button class="btn-team-select" style="background:#22c55e;" onclick="pickTeam('B', 'NHÓM BÉO')">🚶‍♂️ NHÓM BÉO</button>
+        <button class="btn-team-select" style="background:#eab308; color:black;" onclick="pickTeam('C', 'BÌNH THƯỜNG')">🧘‍♂️ BÌNH THƯỜNG</button>
+    </div>
+
+    <div id="step-4" class="screen" style="padding:0; justify-content: flex-start; padding-bottom: 80px;">
+        <div class="header-game" id="game-header">
+            <div class="budget-bar">
+                <span>💰 <span id="local-b">0</span>đ</span>
+                <span style="font-size: 0.6em; align-self: center; color: #666;">Hạn mức: 150k</span>
+                <span>🥗 <span id="local-h">100</span></span>
+            </div>
+        </div>
+        <div class="market-grid" id="market-list"></div>
+        <div class="control-panel">
+            <button class="btn-footer btn-reset" onclick="clearCart()">🔄 CHỌN LẠI</button>
+            <button class="btn-footer btn-submit" onclick="submitInvoice()">✅ XUẤT HÓA ĐƠN</button>
+        </div>
+    </div>
+
+    <div id="step-5" class="screen">
+        <div class="receipt">
+            <center><b style="color:var(--lazada)">LÊ QUÝ ĐÔN - QUYẾT THẮNG</b><br><small>KẾT QUẢ MUA SẮM</small></center>
+            <hr style="border: 0.5px dashed #ccc; margin: 15px 0;">
+            Họ tên: <b id="f-name"></b><br>
+            Nhóm: <b id="f-team"></b><br>
+            Tổng chi: <b id="f-budget" style="color:red"></b><br>
+            Sức khỏe: <b id="f-health" style="color:green"></b><br>
+            <hr style="border: 0.5px dashed #ccc; margin: 15px 0;">
+            <center><small>Mời thầy cô xem AI phản biện trên Dashboard!</small></center>
+        </div>
+        <button onclick="location.reload()" style="margin-top:25px; background:#444; color:white; padding:12px 40px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">KẾT THÚC</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDj_9zzB1yYoiR7D4So5P-y-YbPVDdrgNk",
+            authDomain: "lequydon-ai.firebaseapp.com",
+            databaseURL: "https://lequydon-ai-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "lequydon-ai",
+            storageBucket: "lequydon-ai.firebasestorage.app",
+            messagingSenderId: "613376871526",
+            appId: "1:613376871526:web:d61a4978c7284f7f1df1a7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        let pName = "", pTeamCode = "", pTeam = "", curB = 0, curH = 100, myCart = [];
+
+        const foods = [
+			{img: "images/uc-ga.jpg", n: "Ức gà CP", p: 45000, h: 15, type: "protein"},
+			{img: "images/trung-ga.jpg", n:"Trứng gà", p:15000, h:10, type:"protein"},
+			{img: "images/thit-bo.jpg", n:"Thịt bò", p:65000, h:20, type:"protein"},
+			{img: "images/ca-hoi.jpg", n:"Cá hồi", p:80000, h:25, type:"protein"},
+			{img: "images/sua.jpg", n:"Sữa tươi", p:15000, h:10, type:"protein"},
+			{img: "images/salad.jpg", n:"Salad", p:25000, h:15, type:"fiber"},
+			{img: "images/bong-cai.jpg", n:"Bông cải", p:20000, h:12, type:"fiber"},
+			{img: "images/tao.jpg", n:"Táo đỏ", p:12000, h:8, type:"fiber"},
+			{img: "images/chuoi.jpg", n:"Chuối", p:8000, h:7, type:"fiber"},
+			{img: "images/bo-sap.jpg", n:"Bơ sáp", p:35000, h:15, type:"fiber"},
+			{img: "images/gao-luc.jpg", n:"Cơm lứt", p:20000, h:12, type:"carb"},
+			{img: "images/khoa-lang.jpg", n:"Khoai lang", p:15000, h:10, type:"carb"},
+			{img: "images/mi-ly.jpg", n:"Mì ly", p:10000, h:-15, type:"junk"},
+			{img: "images/berger.jpg", n:"Burger", p:55000, h:-20, type:"junk"},
+			{img: "images/xuc-xich.jpg", n:"Xúc xích", p:20000, h:-12, type:"junk"},
+			{img: "images/khoai-tay-chien.jpg", n:"Khoai tây chiên", p:30000, h:-15, type:"junk"},
+			{img: "images/tra-sua.jpg", n:"Trà sữa", p:40000, h:-25, type:"sugar"},
+			{img: "images/nuoc-ngot.jpg", n:"Nước ngọt", p:12000, h:-18, type:"sugar"},
+			{img: "images/banh-ngot.jpg", n:"Bánh ngọt", p:35000, h:-20, type:"sugar"},
+			{img: "images/hat-dieu.jpg", n:"Hạt điều", p:45000, h:15, type:"fiber"}
+		];
+
+        function goToStep(s) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-' + s).classList.add('active');
+            if(s === 4) renderMarket();
+        }
+
+        function pickTeam(code, name) {
+            pName = document.getElementById('player-name').value.trim();
+            if(!pName) return alert("Vui lòng nhập tên!");
+            pTeamCode = code; pTeam = name;
+            document.getElementById('f-name').innerText = pName;
+            document.getElementById('f-team').innerText = name;
+            goToStep(4);
+        }
+
+        // --- BỎ CHỮ LAZMALL VÀ FREESHIP MAX THEO YÊU CẦU ---
+        function renderMarket() {
+		const list = document.getElementById('market-list');
+		list.innerHTML = "";
+		foods.forEach(f => {
+			const card = document.createElement('div');
+			card.className = 'item-card';
+			card.innerHTML = `
+				<img src="${f.img}" class="item-img" alt="${f.n}" style="object-fit: cover;">
+				
+				<div class="item-info">
+					<div class="item-name">${f.n}</div>
+					<div class="item-price">đ${f.p.toLocaleString()}</div>
+				</div>
+				<button class="btn-buy" style="background:var(--primary); color:white; border:none; width:100%; padding:10px; font-weight:bold; cursor:pointer;" onclick="buy('${f.n}', ${f.p}, ${f.h}, '${f.type}')">MUA</button>
+			`;
+			list.appendChild(card);
+		});
+	}
+
+        function buy(foodName, price, health, type) {
+            let finalH = health;
+            if(pTeamCode === 'A' && type === 'protein') finalH *= 2;
+            if(pTeamCode === 'B' && type === 'fiber') finalH *= 2;
+            if(pTeamCode === 'B' && (type === 'junk' || type === 'sugar')) finalH *= 3;
+
+            curB += price; curH += finalH; myCart.push(foodName);
+            document.getElementById('local-b').innerText = curB.toLocaleString();
+            document.getElementById('local-h').innerText = curH;
+            
+            if(curB > 150000) document.getElementById('game-header').classList.add('over-budget');
+            else document.getElementById('game-header').classList.remove('over-budget');
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function clearCart() {
+            if(confirm("Xóa giỏ hàng để chọn lại?")) {
+                curB = 0; curH = 100; myCart = [];
+                document.getElementById('local-b').innerText = "0";
+                document.getElementById('local-h').innerText = "100";
+                document.getElementById('game-header').classList.remove('over-budget');
+            }
+        }
+
+        function submitInvoice() {
+            document.getElementById('f-budget').innerText = curB.toLocaleString() + "đ";
+            document.getElementById('f-health').innerText = curH;
+            db.ref('players/' + pName).set({
+                name: pName, team: pTeam, b: curB, h: curH, cart: myCart.join(", "), status: "Đã xong ✅"
+            });
+            db.ref('game/' + pTeamCode).transaction(c => {
+                c = c || {b:0, h:0};
+                return {b: (c.b || 0) + curB, h: (c.h || 0) + curH};
+            });
+            goToStep(5);
+        }
+    </script>
+</body>
+</html>
